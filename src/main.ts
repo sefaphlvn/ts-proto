@@ -1185,7 +1185,11 @@ function generateOneofProperty(
 
       // Her field için doğru JSDoc açıklamalarını almak üzere kendi SourceInfo'sunu alıyoruz
       const fieldComments: Code[] = [];
-      const fieldInfo = sourceInfo.lookup(Fields.message.field, f.number);  // Yalnızca o field'a ait SourceInfo
+
+      // Sadece o alan için SourceInfo'yu alın
+      const fieldInfo = sourceInfo.lookup(Fields.message.field, f.number);
+      
+      // Bu alana ait yorumları al
       maybeAddComment(options, fieldInfo, fieldComments, f.options?.deprecated, `${fieldName}`);
 
       // Her field için kendi JSDoc yorumlarını ekliyoruz
@@ -1198,8 +1202,7 @@ function generateOneofProperty(
   const name = maybeSnakeToCamel(messageDesc.oneofDecl[oneofIndex].name, options);
 
   // Sonuç olarak field tanımını döndürüyoruz
-  return code`${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};`;
-}
+  return code`${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};`;}
 
 // Create a function that constructs 'base' instance with default values for decode to use as a prototype
 function generateBaseInstanceFactory(
