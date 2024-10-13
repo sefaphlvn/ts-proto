@@ -1176,32 +1176,22 @@ function generateOneofProperty(
   const { options } = ctx;
   const fields = messageDesc.field.filter((field) => isWithinOneOf(field) && field.oneofIndex === oneofIndex);
   const mbReadonly = maybeReadonly(options);
-  // Yorumları toplamak için bir dizi oluşturuyoruz
-  let comments: Code[] = [];  // Code tipinde bir dizi olmalı
-  
-  // oneof_decl için olan sourceInfo'yu alıyoruz ve yorumları ekliyoruz
-  const info = sourceInfo.lookup(Fields.message.oneof_decl, oneofIndex);
-  maybeAddComment(options, info, comments);
-
-  // Field-level yorumları eklemek için messageDesc field'larını dolaşıyoruz
-  messageDesc.field.forEach((field, index) => {
-    if (!isWithinOneOf(field) || field.oneofIndex !== oneofIndex) {
-      return;
-    }
-    const fieldInfo = sourceInfo.lookup(Fields.message.field, index);
-    const name = maybeSnakeToCamel(field.name, options);
-    // Prefix ile field adını ekleyerek yorumları alıyoruz
-    maybeAddComment(options, fieldInfo, comments, field.options?.deprecated, name);
-  });
-
   // Her bir field için tipleri ve anonim union tipini oluşturuyoruz
   const unionType = joinCode(
     fields.map((f) => {
       let fieldName = maybeSnakeToCamel(f.name, options);
       let typeName = toTypeName(ctx, messageDesc, f);
       let valueName = oneofValueName(fieldName, options);
-      
-      return code`{ ${mbReadonly}$case: '${fieldName}', ${mbReadonly}${valueName}: ${typeName} }`;
+
+      // Yorumlar için bir Code[] dizisi oluşturuyoruz
+      let comments: Code[] = [];
+
+      // Field-level yorumları eklemek için sourceInfo'yu alıyoruz
+      const fieldInfo = sourceInfo.lookup(Fields.message.field, f.number);
+      maybeAddComment(options, fieldInfo, comments);
+
+      // JSDoc yorumlarını her field için ekliyoruz
+      return code`${comments.join('')}{ ${mbReadonly}$case: '${fieldName}', ${mbReadonly}${valueName}: ${typeName} }`;
     }),
     { on: " | " },
   );
@@ -1209,15 +1199,8 @@ function generateOneofProperty(
   // oneof'un adı ve union tipinin tanımlanması
   const name = maybeSnakeToCamel(messageDesc.oneofDecl[oneofIndex].name, options);
 
-  // Yorumları başa ekleyerek 'Code' bloğu oluşturuyoruz
-  let prop: Code;
-  if (comments.length > 0) {
-    prop = code`${comments.join('')}${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};`;
-  } else {
-    prop = code`${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};`;
-  }
-
-  return prop;
+  // Sonuç olarak field tanımını döndürüyoruz
+  return code`${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};`;
 }
 
 // Create a function that constructs 'base' instance with default values for decode to use as a prototype
