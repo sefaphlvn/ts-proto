@@ -1183,15 +1183,13 @@ function generateOneofProperty(
       let typeName = toTypeName(ctx, messageDesc, f);
       let valueName = oneofValueName(fieldName, options);
 
-      // Yorumlar için bir Code[] dizisi oluşturuyoruz
-      let comments: Code[] = [];
+      // Her field için ayrı yorum eklemek üzere kendi SourceInfo'sunu alıyoruz
+      const fieldComments: Code[] = [];
+      const fieldInfo = sourceInfo.lookup(Fields.message.field, f.number);  // Yalnızca o field'a ait SourceInfo
+      maybeAddComment(options, fieldInfo, fieldComments);
 
-      // Field-level yorumları eklemek için sourceInfo'yu alıyoruz
-      const fieldInfo = sourceInfo.lookup(Fields.message.field, f.number);
-      maybeAddComment(options, fieldInfo, comments);
-
-      // JSDoc yorumlarını her field için ekliyoruz
-      return code`${comments.join('')}{ ${mbReadonly}$case: '${fieldName}', ${mbReadonly}${valueName}: ${typeName} }`;
+      // Her field için kendi JSDoc yorumlarını ekliyoruz
+      return code`${fieldComments.join('')}{ ${mbReadonly}$case: '${fieldName}', ${mbReadonly}${valueName}: ${typeName} }`;
     }),
     { on: " | " },
   );
