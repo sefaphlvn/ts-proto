@@ -1183,10 +1183,10 @@ function generateOneofProperty(
       let typeName = toTypeName(ctx, messageDesc, f);
       let valueName = oneofValueName(fieldName, options);
 
-      // Her field için ayrı yorum eklemek üzere kendi SourceInfo'sunu alıyoruz
+      // Her field için doğru JSDoc açıklamalarını almak üzere kendi SourceInfo'sunu alıyoruz
       const fieldComments: Code[] = [];
       const fieldInfo = sourceInfo.lookup(Fields.message.field, f.number);  // Yalnızca o field'a ait SourceInfo
-      maybeAddComment(options, fieldInfo, fieldComments);
+      maybeAddComment(options, fieldInfo, fieldComments, f.options?.deprecated, `${fieldName}`);
 
       // Her field için kendi JSDoc yorumlarını ekliyoruz
       return code`${fieldComments.join('')}{ ${mbReadonly}$case: '${fieldName}', ${mbReadonly}${valueName}: ${typeName} }`;
