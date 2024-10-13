@@ -1190,7 +1190,8 @@ function generateOneofProperty(
     }
     const fieldInfo = sourceInfo.lookup(Fields.message.field, index);
     const name = maybeSnakeToCamel(field.name, options);
-    maybeAddComment(options, fieldInfo, comments);
+    // Prefix ile field adını ekleyerek yorumları alıyoruz
+    maybeAddComment(options, fieldInfo, comments, field.options?.deprecated, name);
   });
 
   // Her bir field için tipleri ve anonim union tipini oluşturuyoruz
@@ -1211,10 +1212,7 @@ function generateOneofProperty(
   // Yorumları başa ekleyerek 'Code' bloğu oluşturuyoruz
   let prop: Code;
   if (comments.length > 0) {
-    prop = code`
-      /** ${comments.join('\n * ')} */
-      ${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};
-    `;
+    prop = code`${comments.join('')}${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};`;
   } else {
     prop = code`${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};`;
   }
