@@ -1176,12 +1176,12 @@ function generateOneofProperty(
   const { options } = ctx;
   const fields = messageDesc.field.filter((field) => isWithinOneOf(field) && field.oneofIndex === oneofIndex);
   const mbReadonly = maybeReadonly(options);
-    // Yorumları toplamak için bir dizi oluşturuyoruz
-  let comments: Array<string> = [];
+  // Yorumları toplamak için bir dizi oluşturuyoruz
+  let comments: Code[] = [];  // Code tipinde bir dizi olmalı
   
   // oneof_decl için olan sourceInfo'yu alıyoruz ve yorumları ekliyoruz
   const info = sourceInfo.lookup(Fields.message.oneof_decl, oneofIndex);
-  maybeAddComment(options, info, (text) => comments.push(text));
+  maybeAddComment(options, info, comments);
 
   // Field-level yorumları eklemek için messageDesc field'larını dolaşıyoruz
   messageDesc.field.forEach((field, index) => {
@@ -1190,7 +1190,7 @@ function generateOneofProperty(
     }
     const fieldInfo = sourceInfo.lookup(Fields.message.field, index);
     const name = maybeSnakeToCamel(field.name, options);
-    maybeAddComment(options, fieldInfo, (text) => comments.push(`${name}: ${text}`));
+    maybeAddComment(options, fieldInfo, comments);
   });
 
   // Her bir field için tipleri ve anonim union tipini oluşturuyoruz
@@ -1208,7 +1208,7 @@ function generateOneofProperty(
   // oneof'un adı ve union tipinin tanımlanması
   const name = maybeSnakeToCamel(messageDesc.oneofDecl[oneofIndex].name, options);
 
-  // JSDoc yorumlarını başa ekleyerek 'Code' bloğu oluşturuyoruz
+  // Yorumları başa ekleyerek 'Code' bloğu oluşturuyoruz
   let prop: Code;
   if (comments.length > 0) {
     prop = code`
