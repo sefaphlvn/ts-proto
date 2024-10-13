@@ -1176,7 +1176,7 @@ function generateOneofProperty(
   const { options } = ctx;
   const fields = messageDesc.field.filter((field) => isWithinOneOf(field) && field.oneofIndex === oneofIndex);
   const mbReadonly = maybeReadonly(options);
-  // Yorumları toplamak için bir dizi oluşturuyoruz
+    // Yorumları toplamak için bir dizi oluşturuyoruz
   let comments: Array<string> = [];
   
   // oneof_decl için olan sourceInfo'yu alıyoruz ve yorumları ekliyoruz
@@ -1207,11 +1207,16 @@ function generateOneofProperty(
 
   // oneof'un adı ve union tipinin tanımlanması
   const name = maybeSnakeToCamel(messageDesc.oneofDecl[oneofIndex].name, options);
-  let prop = code`${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)},`;
 
-  // Eğer yorumlar varsa, bunları JSDoc olarak ekliyoruz
+  // JSDoc yorumlarını başa ekleyerek 'Code' bloğu oluşturuyoruz
+  let prop: Code;
   if (comments.length > 0) {
-    prop = prop.addJavadoc(comments.join('\n'));
+    prop = code`
+      /** ${comments.join('\n * ')} */
+      ${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};
+    `;
+  } else {
+    prop = code`${mbReadonly}${name}?: ${unionType} | ${nullOrUndefined(options)};`;
   }
 
   return prop;
